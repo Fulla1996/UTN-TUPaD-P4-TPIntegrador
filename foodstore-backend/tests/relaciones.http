@@ -1,0 +1,195 @@
+@baseUrl = http://localhost:8000
+
+### 1. Obtener las unidades de medida
+# @name obtenerUnidades
+GET {{baseUrl}}/unidades-medida/
+Accept: application/json
+
+
+### 2. Crear un producto para las pruebas de relaciones
+# @name crearProducto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+    "nombre": "Producto relaciones A",
+    "descripcion": "Producto para probar relaciones con categorías",
+    "precio_base": 1500.00,
+    "stock_cantidad": 5.000,
+    "disponible": true,
+    "unidad_venta_id": 1
+}
+
+
+### 3. Crear un segundo producto sin categorías
+# @name crearSegundoProducto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+    "nombre": "Producto relaciones B",
+    "descripcion": "Producto sin categorías asociadas",
+    "precio_base": 2500.00,
+    "stock_cantidad": 10.000,
+    "disponible": true,
+    "unidad_venta_id": 1
+}
+
+
+### 4. Crear una categoría que luego será anulada
+# @name crearCategoriaAnulada
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+    "nombre": "Categoria anulada",
+    "descripcion": "Categoría para probar la baja lógica"
+}
+
+
+### 5. Crear una categoría principal
+# @name crearCategoriaA
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+    "nombre": "Categoria principal",
+    "descripcion": "Primera categoría para el producto"
+}
+
+
+### 6. Crear una segunda categoría
+# @name crearCategoriaB
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+    "nombre": "Categoria secundaria",
+    "descripcion": "Segunda categoría para el producto"
+}
+
+
+### 7. Intentar crear una categoría con nombre repetido (409)
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+    "nombre": "Categoria principal",
+    "descripcion": "Esta categoría tiene un nombre repetido"
+}
+
+
+### 8. Clasificar el producto en la categoría que luego será anulada
+# @name asignarCategoriaAnulada
+POST {{baseUrl}}/productos/2/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 1,
+    "es_principal": true
+}
+
+
+### 9. Anular la categoría (204)
+DELETE {{baseUrl}}/categorias/1
+
+### 10. Consultar el producto después de anular su categoría
+# El producto debe continuar activo.
+GET {{baseUrl}}/productos/2
+Accept: application/json
+
+
+### 11. Listar las categorías activas
+GET {{baseUrl}}/categorias/?activo=true
+Accept: application/json
+
+
+### 12. Clasificar el producto en la primera categoría como principal
+# @name asignarCategoriaA
+POST {{baseUrl}}/productos/2/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 2,
+    "es_principal": true
+}
+
+
+### 13. Clasificar el mismo producto en la segunda categoría como principal
+# @name asignarCategoriaB
+# Al asignarla como principal, la primera debe dejar de serlo.
+POST {{baseUrl}}/productos/2/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 3,
+    "es_principal": true
+}
+
+
+### 14. Consultar las categorías del producto
+# Se espera que la categoría A tenga es_principal = false
+# y la categoría B tenga es_principal = true.
+GET {{baseUrl}}/productos/2/categorias
+Accept: application/json
+
+
+### 15. Intentar clasificar dos veces el producto en la misma categoría (409)
+POST {{baseUrl}}/productos/2/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 2,
+    "es_principal": false
+}
+
+
+### 16. Intentar clasificar el producto en una categoría inexistente (404)
+POST {{baseUrl}}/productos/2/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 999999,
+    "es_principal": false
+}
+
+
+### 17. Intentar clasificar un producto inexistente (404)
+POST {{baseUrl}}/productos/999999/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 2,
+    "es_principal": false
+}
+
+
+### 18. Intentar clasificar el producto en una categoría anulada (409)
+POST {{baseUrl}}/productos/2/categorias/
+Content-Type: application/json
+
+{
+    "categoria_id": 1,
+    "es_principal": false
+}
+
+
+### 19. Filtrar productos por la categoría
+GET {{baseUrl}}/productos/?categoria_id=1
+Accept: application/json
+
+
+
+### 20. Consultar las categorías del segundo producto
+# Como no tiene asociaciones, se espera una lista vacía.
+GET {{baseUrl}}/productos/1/categorias
+Accept: application/json
+
+### Quitar categoría de un producto
+DELETE {{baseUrl}}/productos/2/categorias/1
+
+### Intentar quitar nuevamente la misma categoría
+DELETE {{baseUrl}}/productos/2/categorias/1
+
+### Intentar quitar una categoría de un producto inexistente
+DELETE {{baseUrl}}/productos/9999/categorias/2

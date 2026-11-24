@@ -1,0 +1,158 @@
+@baseUrl = http://localhost:8000
+@pedidoId = 1
+
+### ==========================================
+### 1. CREAR PEDIDO
+### ==========================================
+
+### Crear pedido correctamente
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "detalles": [
+        {
+            "producto_id": 3,
+            "cantidad": 4
+        },
+        {
+            "producto_id": 6,
+            "cantidad": 1
+        }
+    ]
+}
+
+### Crear pedido sin detalles (422)
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "detalles": []
+}
+
+### Crear pedido con cantidad inválida (422)
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "detalles": [
+        {
+            "producto_id": 1,
+            "cantidad": 0
+        }
+    ]
+}
+
+### Crear pedido con productos duplicados (422)
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "detalles": [
+        {
+            "producto_id": 1,
+            "cantidad": 2
+        },
+        {
+            "producto_id": 1,
+            "cantidad": 3
+        }
+    ]
+}
+
+### Crear pedido con producto inexistente (404)
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "detalles": [
+        {
+            "producto_id": 999999,
+            "cantidad": 1
+        }
+    ]
+}
+
+
+### ==========================================
+### 2. OBTENER PEDIDOS
+### ==========================================
+
+### Obtener todos los pedidos
+GET {{baseUrl}}/pedidos/
+
+### Obtener pedido por ID
+GET {{baseUrl}}/pedidos/{{pedidoId}}
+
+### Obtener pedido inexistente (404)
+GET {{baseUrl}}/pedidos/999999
+
+
+### ==========================================
+### 3. ACTUALIZAR PEDIDO
+### ==========================================
+
+### Confirmar pedido
+PUT {{baseUrl}}/pedidos/{{pedidoId}}
+Content-Type: application/json
+
+{
+    "estado": "CONFIRMADO"
+}
+
+### Cambiar estado a ENTREGADO
+PUT {{baseUrl}}/pedidos/{{pedidoId}}
+Content-Type: application/json
+
+{
+    "estado": "ENTREGADO"
+}
+
+### Cambiar estado a CANCELADO
+PUT {{baseUrl}}/pedidos/{{pedidoId}}
+Content-Type: application/json
+
+{
+    "estado": "CANCELADO"
+}
+
+### Estado inválido (422)
+PUT {{baseUrl}}/pedidos/{{pedidoId}}
+Content-Type: application/json
+
+{
+    "estado": "EN_PREPARACION"
+}
+
+### Intentar actualizar pedido inexistente (404)
+PUT {{baseUrl}}/pedidos/999999
+Content-Type: application/json
+
+{
+    "estado": "CONFIRMADO"
+}
+
+
+### ==========================================
+### 4. ELIMINAR PEDIDO
+### ==========================================
+
+### Eliminar pedido (204)
+DELETE {{baseUrl}}/pedidos/{{pedidoId}}
+
+### Intentar obtener pedido eliminado (404)
+GET {{baseUrl}}/pedidos/{{pedidoId}}
+
+### Intentar eliminar nuevamente (404)
+DELETE {{baseUrl}}/pedidos/{{pedidoId}}
+
+### Intentar actualizar pedido eliminado (404)
+PUT {{baseUrl}}/pedidos/{{pedidoId}}
+Content-Type: application/json
+
+{
+    "estado": "CONFIRMADO"
+}
+
+### Eliminar pedido inexistente (404)
+DELETE {{baseUrl}}/pedidos/999999

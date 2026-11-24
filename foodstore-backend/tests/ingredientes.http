@@ -1,0 +1,89 @@
+@baseUrl = http://localhost:8000
+
+
+### 1. Obtener los ingredientes
+# @name obtenerIngredientes
+GET {{baseUrl}}/ingredientes/
+Accept: application/json
+
+
+### 2. Crear un ingrediente para las pruebas
+# @name crearingrediente
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+    "nombre": "Tomate"
+}
+
+
+### 2. Crear un segundo ingrediente para las pruebas
+# @name crearingrediente
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+    "nombre": "Lechuga"
+}
+
+### 3. Eliminar ingrediente (204)
+DELETE {{baseUrl}}/ingredientes/1
+
+### 4. Intentar eliminar ingrediente inexistente (404)
+DELETE {{baseUrl}}/ingredientes/99999
+
+### 5. Consultar el ingrediente después eliminarlo (404)
+GET {{baseUrl}}/ingredientes/2
+Accept: application/json
+
+
+### 6. Buscar ingredientes por nombre
+GET {{baseUrl}}/ingredientes/?search=Lechuga
+Accept: application/json
+
+
+### 7. Consultar un ingrediente inexistente (404)
+GET {{baseUrl}}/ingredientes/999999
+Accept: application/json
+
+
+### 8. Actualizar un ingrediente con datos inválidos (422)
+PUT {{baseUrl}}/ingredientes/2
+Content-Type: application/json
+
+{
+    "nombre": ""
+}
+
+### 9. Crear ingrediente duplicado
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+    "nombre": "Lechuga"
+}
+
+### 10. Crear tercer ingrediente
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+    "nombre": "Huevo"
+}
+
+
+
+### 11. Actualizar un ingrediente con nombre duplicado (422)
+PUT {{baseUrl}}/ingredientes/3
+Content-Type: application/json
+
+{
+    "nombre": "Lechuga"
+}
+### 12. Actualizar un ingrediente con exito (200)
+PUT {{baseUrl}}/ingredientes/3
+Content-Type: application/json
+
+{
+    "nombre": "Alcaparra"
+}

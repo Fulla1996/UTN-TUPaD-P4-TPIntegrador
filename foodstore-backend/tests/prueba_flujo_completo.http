@@ -1,0 +1,116 @@
+### Flujo de prueba integral - Food Store
+### Requiere la extension REST Client de VS Code.
+### Ejecutar las peticiones EN ORDEN. La cookie access_token se conserva
+### automaticamente entre peticiones del mismo host mediante el cookie jar.
+
+@baseUrl = http://localhost:8000
+
+### CONFIGURACION: completar antes de ejecutar
+@adminEmail = admin@admin.com
+@adminPassword = 123456789
+
+### Usar un email que todavía no exista. Cambiarlo para repetir la prueba.
+@usuarioEmail = prueba.unica@ejemplo.com
+@usuarioPassword = Prueba1234
+
+### Debe corresponder a una unidad de medida existente en la base.
+### Si el ID 1 no existe, reemplazarlo por uno válido.
+@unidadVentaId = 1
+
+
+### 1. LOGIN ADMINISTRADOR
+# @name loginAdmin
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+
+### 2. CREAR CATEGORIA
+# @name crearCategoria
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Categoria de prueba HTTP",
+  "descripcion": "Categoria creada mediante el archivo de pruebas REST Client"
+}
+
+
+### 3. CREAR PRODUCTO
+# @name crearProducto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto de prueba HTTP",
+  "descripcion": "Producto creado para probar el flujo completo",
+  "precio_base": 1250.00,
+  "stock_cantidad": 20,
+  "disponible": true,
+  "imagenes_url": [],
+  "unidad_venta_id": {{unidadVentaId}}
+}
+
+
+### 4. ASIGNAR EL PRODUCTO A LA CATEGORIA CREADA
+# @name asignarCategoria
+POST {{baseUrl}}/productos/{{crearProducto.response.body.$.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": {{crearCategoria.response.body.$.id}},
+  "es_principal": true
+}
+
+
+### 5. LOGOUT ADMINISTRADOR
+# @name logoutAdmin
+POST {{baseUrl}}/auth/logout
+
+
+### 6. REGISTRAR USUARIO NUEVO
+# @name registrarUsuario
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Usuario",
+  "apellido": "Prueba",
+  "email": "{{usuarioEmail}}",
+  "celular": "1112345678",
+  "password": "{{usuarioPassword}}"
+}
+
+
+### 7. LOGIN DEL NUEVO USUARIO
+# @name loginUsuario
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{usuarioEmail}}&password={{usuarioPassword}}
+
+
+### 8. CREAR PEDIDO COMO USUARIO AUTENTICADO
+# @name crearPedido
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+  "detalles": [
+    {
+      "producto_id": {{crearProducto.response.body.$.id}},
+      "cantidad": 2
+    }
+  ]
+}
+
+
+### 9. CONSULTAR PEDIDOS DEL USUARIO (COMPROBACION ADICIONAL)
+# @name listarPedidos
+GET {{baseUrl}}/pedidos/
+
+
+### 10. CONSULTAR EL PEDIDO CREADO (COMPROBACION ADICIONAL)
+# @name consultarPedido
+GET {{baseUrl}}/pedidos/{{crearPedido.response.body.$.id}}
