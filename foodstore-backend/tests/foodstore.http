@@ -1,0 +1,462 @@
+### ==========================================
+### VARIABLES GLOBALES
+### ==========================================
+
+@baseUrl = http://localhost:8000/api/v1
+@adminEmail = admin@admin.com
+@adminPassword = Admin1234!
+
+
+### ==========================================
+### AUTENTICACIÓN
+### ==========================================
+
+### 1. Registrar un usuario
+# @name registrarUsuario
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "username": "cliente_test2",
+    "full_name": "Cliente de Prueba",
+    "email": "cliente@test2.com",
+    "password": "Cliente123!"
+}
+
+###
+
+### 2. Iniciar sesión como administrador
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+###
+
+### 3. Consultar administrador autenticado
+GET {{baseUrl}}/auth/me
+
+###
+
+### 4. Consultar todos los usuarios (solo administrador)
+GET {{baseUrl}}/auth/admin/usuarios
+
+###
+
+### 5. Iniciar sesión como cliente
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=cliente@test.com&password=Cliente123!
+
+###
+
+### 6. Consultar cliente autenticado
+GET {{baseUrl}}/auth/me
+
+###
+
+### 7. Cerrar sesión
+POST {{baseUrl}}/auth/logout
+
+###
+
+### 8. Intentar consultar usuario después del logout
+# Esperado: 401
+GET {{baseUrl}}/auth/me
+
+
+### ==========================================
+### CATEGORÍAS
+### ==========================================
+
+### 9. Iniciar sesión como administrador
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+###
+
+### 10. Crear categoría
+# @name crearCategoria
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+    "nombre": "Postres",
+    "descripcion": "Postres y productos dulces."
+}
+
+###
+
+### 11. Listar categorías
+GET {{baseUrl}}/categorias/
+
+###
+
+### 12. Listar categorías activas
+GET {{baseUrl}}/categorias/?activo=true
+
+###
+
+### 13. Buscar categorías por nombre
+GET {{baseUrl}}/categorias/?search=Postres
+
+###
+
+### 14. Consultar categoría por ID
+# Reemplazar 1 por el ID de la categoría que se desea consultar.
+GET {{baseUrl}}/categorias/1
+
+###
+
+### 15. Actualizar categoría
+# Reemplazar 1 por el ID de la categoría creada en la solicitud 10.
+PUT {{baseUrl}}/categorias/1
+Content-Type: application/json
+
+{
+    "descripcion": "Postres artesanales y productos dulces."
+}
+
+###
+
+### 16. Intentar crear una categoría duplicada
+# Esperado: 409
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+    "nombre": "Postres",
+    "descripcion": "Categoría duplicada."
+}
+
+###
+
+### 17. Desactivar categoría
+# Reemplazar 1 por el ID de la categoría que se desea desactivar.
+# Esperado: 204
+DELETE {{baseUrl}}/categorias/1
+
+###
+
+### 18. Consultar categoría desactivada
+GET {{baseUrl}}/categorias/1
+
+
+### ==========================================
+### PRODUCTOS
+### ==========================================
+
+### 19. Iniciar sesión como administrador
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+###
+
+### 20. Crear producto
+# @name crearProducto
+# Usar el ID de una categoría activa.
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+    "categoria_id": 4,
+    "nombre": "Hamburguesa de prueba",
+    "descripcion": "Producto creado para probar la API.",
+    "precio_base": 8500.00,
+    "imagen_url": null,
+    "stock": 20,
+    "disponible": true
+}
+
+###
+
+### 21. Listar productos
+GET {{baseUrl}}/productos/
+
+###
+
+### 22. Listar productos con stock
+GET {{baseUrl}}/productos/?hay_stock=true
+
+###
+
+### 23. Listar productos disponibles
+GET {{baseUrl}}/productos/?disponible=true
+
+###
+
+### 24. Filtrar productos por categoría
+GET {{baseUrl}}/productos/?categoria_id=1
+
+###
+
+### 25. Buscar productos por nombre
+GET {{baseUrl}}/productos/?search=hamburguesa
+
+###
+
+### 26. Combinar filtros y paginación
+GET {{baseUrl}}/productos/?activo=true&disponible=true&hay_stock=true&skip=0&limit=5
+
+###
+
+### 27. Consultar producto por ID
+GET {{baseUrl}}/productos/1
+
+###
+
+### 28. Actualizar producto parcialmente
+PATCH {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+    "precio_base": 9000.00,
+    "descripcion": "Hamburguesa de prueba con descripción actualizada."
+}
+
+###
+
+### 29. Actualizar stock
+PATCH {{baseUrl}}/productos/1/stock?nuevo_stock=35
+
+###
+
+### 30. Intentar crear un producto con nombre duplicado
+# Esperado: 409
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+    "categoria_id": 1,
+    "nombre": "Hamburguesa de prueba",
+    "descripcion": "Intento de duplicación.",
+    "precio_base": 8500.00,
+    "imagen_url": null,
+    "stock": 10,
+    "disponible": true
+}
+
+###
+
+### 31. Desactivar producto
+# Esperado: 204
+DELETE {{baseUrl}}/productos/1
+
+###
+
+### 32. Intentar actualizar un producto desactivado
+# Esperado: 409
+PATCH {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+    "precio_base": 9500.00
+}
+
+
+### ==========================================
+### PEDIDOS - FLUJO COMO CLIENTE
+### ==========================================
+
+### 33. Iniciar sesión como cliente
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=cliente@test.com&password=Cliente123!
+
+###
+
+### 34. Consultar productos disponibles y registrar stock inicial
+# Anotar el stock del producto que se utilizará en el pedido.
+GET {{baseUrl}}/productos/?disponible=true&hay_stock=true
+
+###
+
+### 35. Crear pedido como cliente
+# @name crearPedidoCliente
+# Reemplazar producto_id por el ID de un producto activo, disponible y con stock.
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "forma_pago": "EFECTIVO",
+    "direccion_entrega": "Av. Corrientes 1234, Buenos Aires",
+    "notas": "Pedido de prueba del cliente.",
+    "detalles": [
+        {
+            "producto_id": 5,
+            "cantidad": 3
+        },
+        {
+            "producto_id": 6,
+            "cantidad": 5
+        }
+    ]
+}
+
+###
+
+### 36. Consultar pedidos propios
+GET {{baseUrl}}/pedidos/
+
+###
+
+### 37. Consultar detalle del pedido creado
+# Reemplazar 1 por el ID devuelto en la solicitud 35.
+GET {{baseUrl}}/pedidos/2
+
+###
+
+### 38. Verificar disminución del stock
+# Comparar con el stock inicial de la solicitud 34.
+GET {{baseUrl}}/productos/3
+
+###
+
+### 39. Intentar avanzar el pedido como cliente
+# El pedido continúa PENDIENTE.
+# Esperado: 409
+PATCH {{baseUrl}}/pedidos/2
+Content-Type: application/json
+
+{
+    "estado": "EN_PREPARACION"
+}
+
+###
+
+### 40. Cancelar el pedido como cliente
+# El propietario puede cancelar su propio pedido pendiente.
+PATCH {{baseUrl}}/pedidos/2
+Content-Type: application/json
+
+{
+    "estado": "CANCELADO"
+}
+
+###
+
+### 41. Consultar pedido cancelado
+GET {{baseUrl}}/pedidos/2
+
+###
+
+### 42. Verificar restitución del stock
+# Debe coincidir con el stock inicial de la solicitud 34.
+GET {{baseUrl}}/productos/3
+
+###
+
+### 43. Intentar modificar un pedido cancelado
+# Los estados terminales no admiten transiciones.
+# Esperado: 409
+PATCH {{baseUrl}}/pedidos/2
+Content-Type: application/json
+
+{
+    "estado": "EN_PREPARACION"
+}
+
+
+### ==========================================
+### PEDIDOS - FLUJO COMO ADMINISTRADOR
+### ==========================================
+
+### 44. Iniciar sesión como administrador
+POST {{baseUrl}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+###
+
+### 45. Consultar stock inicial del producto
+GET {{baseUrl}}/productos/1
+
+###
+
+### 46. Crear pedido como administrador
+# @name crearPedidoAdmin
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+    "forma_pago": "TRANSFERENCIA",
+    "direccion_entrega": "Av. Santa Fe 2500, Buenos Aires",
+    "notas": "Pedido de prueba creado por administrador.",
+    "items": [
+        {
+            "producto_id": 4,
+            "cantidad": 3
+        }
+    ]
+}
+
+###
+
+### 47. Consultar todos los pedidos
+GET {{baseUrl}}/pedidos/
+
+###
+
+### 48. Consultar pedido creado por administrador
+GET {{baseUrl}}/pedidos/9
+
+###
+
+### 49. Verificar disminución del stock
+# Debe haber disminuido en 3 unidades respecto de la solicitud 45.
+GET {{baseUrl}}/productos/4
+
+###
+
+### 50. Cambiar pedido a EN_PREPARACION
+PATCH {{baseUrl}}/pedidos/9
+Content-Type: application/json
+
+{
+    "estado": "EN_PREPARACION"
+}
+
+###
+
+### 51. Verificar que el stock no cambió al avanzar el estado
+GET {{baseUrl}}/productos/4
+
+###
+
+### 52. Cambiar pedido a ENTREGADO
+PATCH {{baseUrl}}/pedidos/9
+Content-Type: application/json
+
+{
+    "estado": "ENTREGADO"
+}
+
+###
+
+### 53. Consultar pedido entregado
+GET {{baseUrl}}/pedidos/9
+
+###
+
+### 54. Intentar cancelar un pedido entregado
+# Los estados terminales no admiten transiciones.
+# Esperado: 409
+PATCH {{baseUrl}}/pedidos/5
+Content-Type: application/json
+
+{
+    "estado": "CANCELADO"
+}
+
+
+### 55. Resumen de pedidos
+GET {{baseUrl}}/pedidos/resumen
+
+###

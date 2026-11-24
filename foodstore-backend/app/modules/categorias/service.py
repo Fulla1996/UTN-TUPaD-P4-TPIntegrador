@@ -25,7 +25,7 @@ def obtener_todas(
     activo: bool | None = None,
     search: str | None = None,
     skip: int = 0,
-    limit: int = 10,
+    limit: int = 20,
 ) -> list[Categoria]:
     with CategoriaUnitOfWork() as uow:
         categorias = uow.categorias.obtener_todas(

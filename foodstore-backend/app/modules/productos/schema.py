@@ -39,9 +39,13 @@ class ProductoUpdate(BaseModel):
     disponible: bool | None = None
 
 
-class ProductoPublic(ProductoBase):
+class ProductoRead(ProductoBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     categoria_id: int
     activo: bool
+
+class ProductosPaginados(BaseModel):
+    total: int
+    items: list[ProductoRead]

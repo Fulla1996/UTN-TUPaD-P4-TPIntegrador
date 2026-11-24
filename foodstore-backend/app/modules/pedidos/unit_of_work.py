@@ -1,11 +1,10 @@
 
 from app.core.unit_of_work import UnitOfWork
+from app.modules.productos.repository import ProductoRepository
 
 from .repository import (
     DetallePedidoRepository,
-    EstadoPedidoRepository,
     PedidoRepository,
-    ProductoRepository,
 )
 
 
@@ -19,6 +18,5 @@ class PedidoUnitOfWork(UnitOfWork):
         self.pedidos = PedidoRepository(self.session)
         self.detalles = DetallePedidoRepository(self.session)
         self.productos = ProductoRepository(self.session)
-        self.estados_pedido = EstadoPedidoRepository(self.session)
 
         return self

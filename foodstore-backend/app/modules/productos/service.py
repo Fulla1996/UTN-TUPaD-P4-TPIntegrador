@@ -5,7 +5,7 @@ from .exceptions import (
 )
 from .model import Producto
 from .repository import *
-from .schema import ProductoCreate, ProductoUpdate
+from .schema import ProductoCreate, ProductoRead, ProductosPaginados, ProductoUpdate
 from .unit_of_work import ProductoUnitOfWork
 
 
@@ -41,25 +41,29 @@ def crear(data: ProductoCreate) -> Producto:
 
 def obtener_todos(
     skip: int = 0,
-    limit: int = 10,
+    limit: int = 20,
     activo: bool | None = None,
     disponible: bool | None = None,
     categoria_id: int | None = None,
     search: str | None = None,
-    hay_stock: bool | None = None,
-) -> list[Producto]:
+) -> ProductosPaginados:
     with ProductoUnitOfWork() as uow:
-        productos = uow.productos.obtener_todos(
+        total, productos = uow.productos.obtener_todos(
             skip=skip,
             limit=limit,
             activo=activo,
             disponible=disponible,
             categoria_id=categoria_id,
             search=search,
-            hay_stock=hay_stock,
         )
 
-    return productos
+    return ProductosPaginados(
+        total=total,
+        items=[
+            ProductoRead.model_validate(producto)
+            for producto in productos
+            ]
+    )
 
 
 def obtener_por_id(producto_id: int) -> Producto | None:

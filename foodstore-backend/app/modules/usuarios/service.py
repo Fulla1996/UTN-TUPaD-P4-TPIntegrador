@@ -1,20 +1,23 @@
 import bcrypt
 from sqlmodel import select
 
+from app.modules.usuarios.enums import Rol
+
 from ...core.security import verificar_password
 from .exceptions import (
     EmailDuplicado,
+    NoPuedeDesactivarseASiMismo,
     UserNameDuplicado,
     UsuarioDesactivado,
     UsuarioNoEncontrado,
     UsuarioYaActivo,
 )
 from .model import Usuario
-from .schema import UsuarioCreate, UsuarioPublic
+from .schema import UsuarioCreate
 from .unit_of_work import UsuarioUnitOfWork
 
 
-def registrar(data: UsuarioCreate) -> UsuarioPublic:
+def registrar(data: UsuarioCreate) -> Usuario:
     with UsuarioUnitOfWork() as uow:
         if uow.session is None:
             raise RuntimeError("La sesión se cerró inesperadamente")
@@ -35,7 +38,6 @@ def registrar(data: UsuarioCreate) -> UsuarioPublic:
 
         if username_existente is not None:
             raise UserNameDuplicado(f"Ya existe un usuario con el username {username}")
-        
 
         password_hash = bcrypt.hashpw(
             data.password.encode("utf-8"),
@@ -47,7 +49,7 @@ def registrar(data: UsuarioCreate) -> UsuarioPublic:
             full_name=data.full_name,
             email=email,
             hashed_password=password_hash,
-            role="user",
+            role=Rol.USER,
             disabled=False,
         )
 
@@ -56,9 +58,9 @@ def registrar(data: UsuarioCreate) -> UsuarioPublic:
         if usuario.id is None:
             raise RuntimeError("No se pudo generar el ID del usuario")
 
-        usuario_publico = _convertir_a_publico(usuario)
-
-    return usuario_publico
+        
+    
+    return usuario
 
 
 def obtener_por_email(email: str) -> Usuario:
@@ -87,11 +89,11 @@ def obtener_por_id(usuario_id: int) -> Usuario:
         return usuario
 
 
-def obtener_todos() -> list[UsuarioPublic]:
+def obtener_todos(skip: int = 0, limit: int = 20) -> list[Usuario]:
     with UsuarioUnitOfWork() as uow:
-        usuarios = uow.usuarios.get_all()
+        usuarios = uow.usuarios.obtener_todos(skip=skip, limit=limit)
 
-        return [_convertir_a_publico(usuario) for usuario in usuarios]
+        return usuarios
 
 
 def activar(usuario_id: int) -> Usuario:
@@ -109,7 +111,11 @@ def activar(usuario_id: int) -> Usuario:
         return uow.usuarios.update(usuario)
 
 
-def desactivar(usuario_id: int) -> Usuario:
+def desactivar(usuario_id: int, admin_id: int) -> Usuario:
+    if usuario_id == admin_id:
+        raise NoPuedeDesactivarseASiMismo(
+            "El administrador no puede desactivarse a sí mismo."
+        )
     with UsuarioUnitOfWork() as uow:
         usuario = uow.usuarios.get(usuario_id)
 
@@ -137,28 +143,3 @@ def autenticar(email: str, password: str) -> Usuario:
         raise UsuarioDesactivado("Cuenta de usuario desactivada")
 
     return usuario
-
-
-def obtener_publico(usuario_id: int) -> UsuarioPublic:
-    with UsuarioUnitOfWork() as uow:
-        usuario = uow.usuarios.get(usuario_id)
-
-        if usuario is None:
-            raise UsuarioNoEncontrado(f"No existe un usuario con ID {usuario_id}")
-
-        return _convertir_a_publico(usuario)
-
-
-def _convertir_a_publico(usuario: Usuario) -> UsuarioPublic:
-    if usuario.id is None:
-        raise RuntimeError("El usuario no tiene ID generado")
-
-    return UsuarioPublic(
-        id=usuario.id,
-        username=usuario.username,
-        full_name=usuario.full_name,
-        email=usuario.email,
-        created_at=usuario.created_at,
-        disabled=usuario.disabled,
-        role=usuario.role,
-    )

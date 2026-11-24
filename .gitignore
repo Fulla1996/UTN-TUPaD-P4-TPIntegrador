@@ -1,1 +1,8 @@
 foodstore-backend/.env
+/foodstore-backend/app/__pycache__
+/foodstore-backend/app/core/__pycache__
+/foodstore-backend/app/db/__pycache__
+/foodstore-backend/app/modules/categorias/__pycache__
+/foodstore-backend/app/modules/pedidos/__pycache__
+/foodstore-backend/app/modules/productos/__pycache__
+/foodstore-backend/app/modules/usuarios/__pycache__

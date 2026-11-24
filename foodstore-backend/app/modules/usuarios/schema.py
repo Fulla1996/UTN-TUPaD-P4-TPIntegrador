@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from app.modules.usuarios.enums import Rol
 
 
 class UsuarioCreate(BaseModel):
@@ -20,4 +21,4 @@ class UsuarioPublic(BaseModel):
     email: EmailStr
     created_at: datetime
     disabled: bool
-    role: Literal["user", "admin"]
+    role: Rol

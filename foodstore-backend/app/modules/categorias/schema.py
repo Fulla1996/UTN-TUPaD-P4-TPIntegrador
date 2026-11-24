@@ -15,7 +15,7 @@ class CategoriaUpdate(BaseModel):
     descripcion: str | None = None
 
 
-class CategoriaPublic(CategoriaBase):
+class CategoriaRead(CategoriaBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int

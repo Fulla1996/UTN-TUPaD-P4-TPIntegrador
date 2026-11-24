@@ -11,7 +11,7 @@ from .exceptions import CategoriaDesactivada, NombreDuplicado
 router = APIRouter(prefix="/categorias", tags=["Categorías"])
 
 @router.post(
-    "/", response_model=schema.CategoriaPublic, status_code=status.HTTP_201_CREATED
+    "/", response_model=schema.CategoriaRead, status_code=status.HTTP_201_CREATED
 )
 def alta_categoria(
     categoria: schema.CategoriaCreate,
@@ -28,20 +28,20 @@ def alta_categoria(
 
 
 @router.get(
-    "/", response_model=list[schema.CategoriaPublic], status_code=status.HTTP_200_OK
+    "/", response_model=list[schema.CategoriaRead], status_code=status.HTTP_200_OK
 )
 def listar_categorias(
     _: Annotated[Usuario, Depends(get_current_active_user)],
     activo: bool | None = Query(None),
     search: str | None = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, le=50, ge=1),
+    limit: int = Query(20, le=100, ge=1),
 ):
     return service.obtener_todas(activo, search, skip, limit)
 
 
 @router.get(
-    "/{id}", response_model=schema.CategoriaPublic, status_code=status.HTTP_200_OK
+    "/{id}", response_model=schema.CategoriaRead, status_code=status.HTTP_200_OK
 )
 def detalle_categoria(
     _: Annotated[Usuario, Depends(get_current_active_user)],
@@ -56,7 +56,7 @@ def detalle_categoria(
 
 
 @router.put(
-    "/{id}", response_model=schema.CategoriaPublic, status_code=status.HTTP_200_OK
+    "/{id}", response_model=schema.CategoriaRead, status_code=status.HTTP_200_OK
 )
 def actualizar_categoria(
     _: Annotated[Usuario, Depends(require_role(["admin"]))],

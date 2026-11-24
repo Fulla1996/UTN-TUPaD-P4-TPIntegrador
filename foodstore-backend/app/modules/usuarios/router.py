@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.security import (
@@ -14,6 +14,7 @@ from app.modules.usuarios.model import Usuario
 from . import service
 from .exceptions import (
     EmailDuplicado,
+    NoPuedeDesactivarseASiMismo,
     UserNameDuplicado,
     UsuarioDesactivado,
     UsuarioNoEncontrado,
@@ -109,7 +110,7 @@ def obtener_usuario_actual(
         )
 
     try:
-        return service.obtener_publico(current_user.id)
+        return service.obtener_por_id(current_user.id)
     except UsuarioNoEncontrado as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -124,8 +125,10 @@ def obtener_usuario_actual(
 )
 def obtener_usuarios(
     _: Annotated[Usuario, Depends(require_role(["admin"]))],
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100)
 ):
-    return service.obtener_todos()
+    return service.obtener_todos(skip, limit)
 
 
 @router.post(
@@ -145,10 +148,7 @@ def activar_usuario(
             detail=str(e),
         )
     except UsuarioYaActivo as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post(
@@ -158,17 +158,19 @@ def activar_usuario(
 )
 def desactivar_usuario(
     usuario_id: int,
-    _: Annotated[Usuario, Depends(require_role(["admin"]))],
+    admin: Annotated[Usuario, Depends(require_role(["admin"]))],
 ):
+    if admin.id is None:
+        raise RuntimeError("El ID del admin no fue encontrado.")
     try:
-        return service.desactivar(usuario_id)
+        return service.desactivar(usuario_id, admin.id)
     except UsuarioNoEncontrado as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
     except UsuarioDesactivado as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    except NoPuedeDesactivarseASiMismo as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

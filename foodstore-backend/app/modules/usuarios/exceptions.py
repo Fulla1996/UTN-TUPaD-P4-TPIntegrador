@@ -12,3 +12,9 @@ class UsuarioDesactivado(Exception):
 
 class UsuarioYaActivo(Exception):
     pass
+
+class NoPuedeDesactivarseASiMismo(Exception):
+    pass
+
+class PedidoAjeno(Exception):
+    pass

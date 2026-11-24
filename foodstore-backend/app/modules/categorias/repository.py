@@ -14,7 +14,7 @@ class CategoriaRepository(BaseRepository[Categoria]):
         activo: bool | None = None,
         search: str | None = None,
         skip: int = 0,
-        limit: int = 10,
+        limit: int = 20,
     ) -> list[Categoria]:
 
         statement = select(Categoria)
@@ -38,8 +38,10 @@ class CategoriaRepository(BaseRepository[Categoria]):
         nombre: str,
         excluir_id: int | None = None,
     ) -> bool:
-        statement = select(Categoria).where(
-            col(Categoria.nombre).ilike(nombre)
+        statement = (
+            select(Categoria)
+            .where(col(Categoria.nombre).ilike(nombre))
+            .where(Categoria.activo == True)
         )
 
         if excluir_id is not None:

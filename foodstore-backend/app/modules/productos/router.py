@@ -21,7 +21,7 @@ router = APIRouter(prefix="/productos", tags=["Productos"])
 # ---------------------------------------------------------
 @router.post(
     "/",
-    response_model=schema.ProductoPublic,
+    response_model=schema.ProductoRead,
     status_code=status.HTTP_201_CREATED,
 )
 def alta_producto(
@@ -56,18 +56,17 @@ def alta_producto(
 # ---------------------------------------------------------
 @router.get(
     "/",
-    response_model=list[schema.ProductoPublic],
+    response_model=schema.ProductosPaginados,
     status_code=status.HTTP_200_OK,
 )
 def listar_productos(
     _: Annotated[Usuario, Depends(get_current_active_user)],
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, le=50, ge=1),
+    limit: int = Query(20, le=100, ge=1),
     activo: bool | None = Query(None),
     disponible: bool | None = Query(None),
     categoria_id: int | None = Query(None),
     search: str | None = Query(None),
-    hay_stock: bool | None = Query(None),
 ):
     return service.obtener_todos(
         skip,
@@ -76,7 +75,6 @@ def listar_productos(
         disponible,
         categoria_id,
         search,
-        hay_stock,
     )
 
 
@@ -86,7 +84,7 @@ def listar_productos(
 # ---------------------------------------------------------
 @router.get(
     "/{id}",
-    response_model=schema.ProductoPublic,
+    response_model=schema.ProductoRead,
     status_code=status.HTTP_200_OK,
 )
 def detalle_producto(
@@ -110,7 +108,7 @@ def detalle_producto(
 # ---------------------------------------------------------
 @router.patch(
     "/{id}",
-    response_model=schema.ProductoPublic,
+    response_model=schema.ProductoRead,
     status_code=status.HTTP_200_OK,
 )
 def actualizar_producto(
@@ -160,7 +158,7 @@ def actualizar_producto(
 # ---------------------------------------------------------
 @router.patch(
     "/{id}/stock",
-    response_model=schema.ProductoPublic,
+    response_model=schema.ProductoRead,
     status_code=status.HTTP_200_OK,
 )
 def actualizar_stock(

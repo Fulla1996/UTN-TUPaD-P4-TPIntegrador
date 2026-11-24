@@ -1,8 +1,9 @@
 from datetime import UTC, datetime
-from typing import Literal
 
 from sqlalchemy import CHAR, BigInteger, Column, DateTime, String
 from sqlmodel import Field, SQLModel
+
+from app.modules.usuarios.enums import Rol
 
 
 class Usuario(SQLModel, table=True):
@@ -29,4 +30,4 @@ class Usuario(SQLModel, table=True):
 
     disabled: bool = Field(default=False, nullable=False)
 
-    role: Literal["user", "admin"] = Field(default="user", nullable=False)
+    role: Rol = Field(default="user", nullable=False)

@@ -14,7 +14,6 @@ class Categoria(SQLModel, table=True):
     nombre: str = Field(
         min_length=3,
         max_length=80,
-        unique=True,
         nullable=False,
     )
 
