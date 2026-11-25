@@ -53,7 +53,7 @@ def iniciar_sesion(
 ):
     try:
         usuario = service.autenticar(
-            email=form_data.username,
+            username=form_data.username,
             password=form_data.password,
         )
     except UsuarioNoEncontrado as e:

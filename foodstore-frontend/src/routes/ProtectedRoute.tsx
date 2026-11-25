@@ -1,11 +1,12 @@
+import { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 import { useAuthStore } from "@/features/auth";
+import type { RolUsuario } from "@/features/auth/types/usuario.types";
 import { useNotificationStore } from "@/store/notificationStore";
-import { useEffect } from "react";
 
 interface ProtectedRouteProps {
-  allowedRoles?: string[];
+  allowedRoles?: RolUsuario[];
 }
 
 export default function ProtectedRoute({
@@ -15,18 +16,18 @@ export default function ProtectedRoute({
   const checking = useAuthStore((state) => state.checking);
 
   const showNotification = useNotificationStore(
-    (state) => state.showNotification
+    (state) => state.showNotification,
   );
 
   const tienePermiso =
-    !allowedRoles ||
-    allowedRoles.some((role) => user?.roles.includes(role));
+    !allowedRoles || (user !== null && allowedRoles.includes(user.role));
 
   useEffect(() => {
     if (!checking && user && !tienePermiso) {
       showNotification("No tenés permisos para acceder a esta página.");
     }
   }, [checking, user, tienePermiso, showNotification]);
+
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -39,8 +40,7 @@ export default function ProtectedRoute({
     return <Navigate to="/login" replace />;
   }
 
-  if (!tienePermiso)
-  {
+  if (!tienePermiso) {
     return <Navigate to="/unauthorized" replace />;
   }
 

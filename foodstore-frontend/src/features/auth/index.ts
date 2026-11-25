@@ -8,7 +8,7 @@ export { useUsuarios } from "./hooks/useUsuarios";
 export { useAuth } from "./hooks/useAuth"
 
 // Store
-export { useAuthStore } from "./store/authStore";
+export { useAuthStore } from "../../store/authStore";
 
 // Types
 export type {

@@ -1,5 +1,5 @@
 export { default as Navbar } from "./Navbar"
-export { default as UnauthorizedPage } from "./UnauthorizedPage"
+export { default as UnauthorizedPage } from "../../features/auth/pages/UnauthorizedPage"
 
 export {default as LoadingState} from "./LoadingState"
 export {default as EmptyState} from "./EmptyState"

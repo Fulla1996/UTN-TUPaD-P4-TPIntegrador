@@ -1,10 +1,10 @@
-import { api } from "@/shared/api/api";
+import { api } from "@/shared/api/axiosInstance";
 import type { UsuarioAuth } from "../types/usuario.types";
 
-export async function login(email: string, password: string): Promise<void> {
+export async function login(username: string, password: string): Promise<void> {
   const formData = new URLSearchParams();
 
-  formData.append("username", email);
+  formData.append("username", username);
   formData.append("password", password);
 
   await api.post("/auth/token", formData, {
@@ -25,10 +25,9 @@ export async function obtenerUsuarioActual(): Promise<UsuarioAuth> {
 }
 
 export async function registrar(data: {
-  nombre: string;
-  apellido: string;
+  username: string;
+  full_name: string;
   email: string;
-  celular?: string;
   password: string;
 }): Promise<UsuarioAuth> {
   const response = await api.post<UsuarioAuth>(

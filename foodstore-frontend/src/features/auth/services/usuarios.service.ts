@@ -1,4 +1,4 @@
-import { api } from "@/shared/api/api";
+import { api } from "@/shared/api/axiosInstance";
 import type { UsuarioAdmin } from "../types/usuario.types";
 
 // Obtener todos los usuarios

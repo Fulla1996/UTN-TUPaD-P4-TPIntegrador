@@ -58,8 +58,6 @@ def registrar(data: UsuarioCreate) -> Usuario:
         if usuario.id is None:
             raise RuntimeError("No se pudo generar el ID del usuario")
 
-        
-    
     return usuario
 
 
@@ -85,6 +83,22 @@ def obtener_por_id(usuario_id: int) -> Usuario:
 
         if usuario is None:
             raise UsuarioNoEncontrado(f"No existe un usuario con ID {usuario_id}")
+
+        return usuario
+
+
+def obtener_por_username(username: str) -> Usuario:
+    username = username.lower()
+    with UsuarioUnitOfWork() as uow:
+        if uow.session is None:
+            raise RuntimeError("La sesión se cerró inesperadamente")
+
+        usuario = uow.session.exec(
+            select(Usuario).where(Usuario.username == username)
+        ).first()
+
+        if usuario is None:
+            raise UsuarioNoEncontrado(f"No existe un usuario con el username {username}")
 
         return usuario
 
@@ -130,9 +144,9 @@ def desactivar(usuario_id: int, admin_id: int) -> Usuario:
         return uow.usuarios.update(usuario)
 
 
-def autenticar(email: str, password: str) -> Usuario:
+def autenticar(username: str, password: str) -> Usuario:
     try:
-        usuario = obtener_por_email(email)
+        usuario = obtener_por_username(username)
     except UsuarioNoEncontrado:
         raise UsuarioNoEncontrado("Credenciales incorrectas")
 

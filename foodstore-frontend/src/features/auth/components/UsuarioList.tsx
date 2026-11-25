@@ -15,7 +15,7 @@ import type {
 } from "@tanstack/react-table";
 
 import type { UsuarioAdmin } from "../types/usuario.types";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../../../store/authStore";
 
 interface UsuarioListProps {
     usuarios: UsuarioAdmin[];

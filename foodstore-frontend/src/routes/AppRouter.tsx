@@ -6,8 +6,8 @@ import {
   AdminUsersPage,
 } from "@/features/auth";
 
-import { CategoriasPage } from "@/features/categories";
-import { ProductosPage } from "@/features/products";
+import { CategoriasPage } from "@/features/categorias";
+import { ProductosPage } from "@/features/productos";
 import { IngredientesPage } from "@/features/ingredients";
 
 import { Navbar, UnauthorizedPage } from "@/shared/components";

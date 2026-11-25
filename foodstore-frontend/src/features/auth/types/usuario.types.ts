@@ -1,15 +1,11 @@
+export type RolUsuario = "admin" | "user";
+
 export interface UsuarioAuth {
     id: number;
-    nombre: string;
-    apellido: string;
+    username: string;
+    full_name: string;
     email: string;
-    celular: string | null;
-    roles: string[];
-}
-
-export interface UsuarioAdmin extends UsuarioAuth {
     created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    activo: boolean;
+    disabled: boolean;
+    role: RolUsuario;
 }

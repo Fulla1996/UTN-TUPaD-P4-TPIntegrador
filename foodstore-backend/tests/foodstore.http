@@ -4,6 +4,7 @@
 
 @baseUrl = http://localhost:8000/api/v1
 @adminEmail = admin@admin.com
+@adminUser = admin
 @adminPassword = Admin1234!
 
 
@@ -29,7 +30,7 @@ Content-Type: application/json
 POST {{baseUrl}}/auth/token
 Content-Type: application/x-www-form-urlencoded
 
-username={{adminEmail}}&password={{adminPassword}}
+username={{adminUser}}&password={{adminPassword}}
 
 ###
 
