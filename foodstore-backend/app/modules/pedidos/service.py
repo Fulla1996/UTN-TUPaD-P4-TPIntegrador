@@ -51,7 +51,7 @@ def crear(data: PedidoCreate, usuario_id: int) -> Pedido:
 
             if producto.id is None:
                 raise RuntimeError("Error inesperado: El producto no tiene ID generado")
-            
+
             if producto.stock < cantidad:
                 raise StockInsuficiente(
                     f"Stock insuficiente para el producto '{producto.nombre}'."
@@ -91,21 +91,19 @@ def obtener_todos(
     es_admin: bool,
     skip: int = 0,
     limit: int = 20,
+    estado: EstadoPedido | None = None,
 ) -> PedidosPaginados:
     with PedidoUnitOfWork() as uow:
-        
         total, pedidos = uow.pedidos.obtener_todos(
             skip=skip,
             limit=limit,
             usuario_id=None if es_admin else usuario_id,
+            estado=estado,
         )
 
         return PedidosPaginados(
             total=total,
-            items=[
-                PedidoRead.model_validate(pedido)
-                for pedido in pedidos
-            ],
+            items=[PedidoRead.model_validate(pedido) for pedido in pedidos],
         )
 
 
@@ -117,7 +115,7 @@ def obtener_por_id(
     with PedidoUnitOfWork() as uow:
         pedido = uow.pedidos.get(pedido_id)
 
-        if pedido is None: 
+        if pedido is None:
             raise PedidoNoEncontrado(f"No existe el pedido con ID {pedido_id}.")
         if not es_admin and pedido.usuario_id != usuario_id:
             raise PedidoAjeno("Solo puedes acceder a tus propios pedidos.")
@@ -187,6 +185,7 @@ def actualizar(
         pedido.updated_at = datetime.now(UTC)
 
         return uow.pedidos.update(pedido)
+
 
 def obtener_resumen() -> ResumenPedidos:
     with PedidoUnitOfWork() as uow:

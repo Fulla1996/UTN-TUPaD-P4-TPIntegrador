@@ -33,4 +33,7 @@ class Producto(SQLModel, table=True):
 
     activo: bool = Field(default=True, nullable=False)
 
-    categoria: Categoria = Relationship(back_populates="productos")
+    categoria: Categoria = Relationship(
+        back_populates="productos",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )

@@ -3,6 +3,8 @@ import { useState } from "react";
 import type {
     ProductoCreate,
     ProductoPublic,
+    ProductoSortBy,
+    SortOrder
 } from "../types/producto.types";
 
 import { useProductos } from "../hooks/useProductos";
@@ -15,16 +17,29 @@ import {
     ErrorState,
     LoadingState,
     EmptyState,
-} from "@/shared/components";
+} from "@/shared";
 
 const AdminProductosPage = () => {
+    // Paginación
+    const [paginaActual, setPaginaActual] = useState(1);
+    const [limite] = useState(10);
+
+    // Ordenamiento
+    const [sortBy, setSortBy] = useState<ProductoSortBy>("id");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
     const {
         productosQuery,
         crearMutation,
         editarMutation,
         eliminarMutation,
         cambiarEstadoMutation,
-    } = useProductos();
+    } = useProductos("", null, {
+        skip: (paginaActual - 1) * limite,
+        limit: limite,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+    });
 
     const { categoriasQuery } = useCategorias();
 
@@ -102,6 +117,21 @@ const AdminProductosPage = () => {
         });
     };
 
+    // Cambiar página
+    const handleCambiarPagina = (pagina: number) => {
+        setPaginaActual(pagina);
+    };
+
+    // Cambiar ordenamiento
+    const handleCambiarOrdenamiento = (
+        nuevoSortBy: ProductoSortBy,
+        nuevoSortOrder: SortOrder,
+    ) => {
+        setSortBy(nuevoSortBy);
+        setSortOrder(nuevoSortOrder);
+        setPaginaActual(1);
+    };
+
     // Estado de carga
     if (productosQuery.isLoading || categoriasQuery.isLoading) {
         return <LoadingState mensaje="Cargando productos..." />;
@@ -164,6 +194,11 @@ const AdminProductosPage = () => {
             {productosQuery.data.items.length > 0 ? (
                 <ProductoList
                     productos={productosQuery.data.items}
+                    total={productosQuery.data.total}
+                    paginaActual={paginaActual}
+                    limite={limite}
+                    onCambiarPagina={handleCambiarPagina}
+                    onCambiarOrdenamiento={handleCambiarOrdenamiento}
                     onEditar={handleEditarProducto}
                     onEliminar={handleEliminarProducto}
                     onCambiarDisponibilidad={handleCambiarDisponibilidad}

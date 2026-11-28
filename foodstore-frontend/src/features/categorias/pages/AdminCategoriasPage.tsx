@@ -14,7 +14,7 @@ import {
     LoadingState,
     EmptyState,
     ErrorState,
-} from "@/shared/components";
+} from "@/shared";
 
 function AdminCategoriasPage() {
     const {

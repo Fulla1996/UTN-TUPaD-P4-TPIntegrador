@@ -1,11 +1,19 @@
-import type { ProductoPublic } from "../types/producto.types";
+import type { ProductoPublic } from "@/features/productos";
+
+import { Link } from "react-router-dom";
+
+import { Card, BadgeEstado } from "@/shared";
+import { useCartStore } from "@/store/cartStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 interface ProductoCardProps {
     producto: ProductoPublic;
     modo?: "publico" | "admin";
+    onClick?: () => void;
     onEditar?: (producto: ProductoPublic) => void;
     onCambiarDisponibilidad?: (producto: ProductoPublic) => void;
     onAnular?: (id: number) => void;
+    enlaceDetalle?: boolean
 }
 
 export const ProductoCard = ({
@@ -14,33 +22,130 @@ export const ProductoCard = ({
     onEditar,
     onCambiarDisponibilidad,
     onAnular,
+    enlaceDetalle = true
 }: ProductoCardProps) => {
+    const agregarProducto = useCartStore((state) => state.agregarProducto);
+
+    const showNotification = useNotificationStore(
+        (state) => state.showNotification
+    );
+
     const estado = !producto.activo
-        ? {
-            texto: "Inactivo",
-            estilos:
-                "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
-        }
+        ? { texto: "Inactivo", variante: "neutral" as const }
         : !producto.stock
-            ? {
-                texto: "Sin stock",
-                estilos:
-                    "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
-            }
+            ? { texto: "Sin stock", variante: "warning" as const }
             : !producto.disponible
-                ? {
-                    texto: "No disponible",
-                    estilos:
-                        "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
-                }
-                : {
-                    texto: "Disponible",
-                    estilos:
-                        "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
-                };
+                ? { texto: "No disponible", variante: "danger" as const }
+                : { texto: "Disponible", variante: "success" as const };
+
+    const puedeAgregar =
+        producto.activo &&
+        producto.disponible &&
+        producto.stock > 0;
+
+    const handleAgregarCarrito = () => {
+        if (!puedeAgregar) return;
+
+        agregarProducto(producto);
+        showNotification(`${producto.nombre} agregado al carrito`);
+    };
 
     return (
-        <article className="rounded-xl border border-border bg-surface p-5 shadow-sm transition-shadow hover:shadow-md">
+        <Card className="rounded-xl p-5 transition-shadow hover:shadow-md">
+            {modo === "publico" && enlaceDetalle ? (
+                <Link
+                    to={`/productos/${producto.id}`}
+                    className="block rounded-md focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                    <ContenidoProducto
+                        producto={producto}
+                        estado={estado}
+                        mostrarEstado={
+                            !producto.activo ||
+                            !producto.disponible ||
+                            producto.stock <= 0
+                        }
+                    />
+                </Link>
+            ) : (
+                <ContenidoProducto
+                    producto={producto}
+                    estado={estado}
+                    mostrarEstado={
+                        !producto.activo ||
+                        !producto.disponible ||
+                        producto.stock <= 0
+                    }
+                />
+            )}
+
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+                {modo === "publico" && (
+                    <button
+                        type="button"
+                        onClick={handleAgregarCarrito}
+                        disabled={!puedeAgregar}
+                        className="btn btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {puedeAgregar
+                            ? "Agregar al carrito"
+                            : "No disponible"}
+                    </button>
+                )}
+
+                {modo === "admin" && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => onEditar?.(producto)}
+                            disabled={!producto.activo}
+                            className="btn btn-warning"
+                        >
+                            Editar
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onCambiarDisponibilidad?.(producto)}
+                            disabled={!producto.activo}
+                            className="btn btn-secondary"
+                        >
+                            {producto.disponible
+                                ? "Deshabilitar"
+                                : "Habilitar"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onAnular?.(producto.id)}
+                            disabled={!producto.activo}
+                            className="btn btn-soft-danger"
+                        >
+                            Anular
+                        </button>
+                    </>
+                )}
+            </div>
+        </Card>
+    );
+};
+
+interface ContenidoProductoProps {
+    producto: ProductoPublic;
+    estado: {
+        texto: string;
+        variante: "success" | "warning" | "danger" | "info" | "neutral";
+    };
+    mostrarEstado: boolean;
+}
+
+function ContenidoProducto({
+    producto,
+    estado,
+    mostrarEstado,
+}: ContenidoProductoProps) {
+    return (
+        <>
             <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                     <h2 className="text-lg font-semibold text-foreground">
@@ -52,12 +157,11 @@ export const ProductoCard = ({
                     </p>
                 </div>
 
-                {(modo === "admin" || !producto.activo || !producto.disponible || producto.stock <= 0) && (
-                    <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${estado.estilos}`}
-                    >
-                        {estado.texto}
-                    </span>
+                {mostrarEstado && (
+                    <BadgeEstado
+                        texto={estado.texto}
+                        variante={estado.variante}
+                    />
                 )}
             </div>
 
@@ -77,15 +181,11 @@ export const ProductoCard = ({
                     ${Number(producto.precio_base).toFixed(2)}
                 </p>
 
-
                 <p className="text-sm text-muted">
-                    <span>
-                        Stock: {producto.stock > 0
-                            ? `${producto.stock} unidades disponibles`
-                            : "Sin stock"}
-                    </span>
+                    Stock: {producto.stock > 0
+                        ? `${producto.stock} unidades disponibles`
+                        : "Sin stock"}
                 </p>
-
 
                 <div className="pt-1">
                     <span className="rounded-md bg-blue-50 px-2 py-1 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300">
@@ -93,38 +193,8 @@ export const ProductoCard = ({
                     </span>
                 </div>
             </div>
-
-            {modo === "admin" && (
-                <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
-                    <button
-                        onClick={() => onEditar?.(producto)}
-                        disabled={!producto.activo}
-                        className="btn btn-warning"
-                    >
-                        Editar
-                    </button>
-
-                    <button
-                        onClick={() => onCambiarDisponibilidad?.(producto)}
-                        disabled={!producto.activo}
-                        className="btn btn-secondary"
-                    >
-                        {producto.disponible
-                            ? "Deshabilitar"
-                            : "Habilitar"}
-                    </button>
-
-                    <button
-                        onClick={() => onAnular?.(producto.id)}
-                        disabled={!producto.activo}
-                        className="btn btn-soft-danger"
-                    >
-                        Anular
-                    </button>
-                </div>
-            )}
-        </article>
+        </>
     );
-};
+}
 
 export default ProductoCard;

@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useNavigate, Link } from "react-router-dom";
 
-import { useAuthStore } from "../../../store/authStore";
+import { useAuthStore } from "@/store/";
 import { useNotificationStore } from "@/store/notificationStore";
 
 export default function LoginPage() {
@@ -12,18 +12,18 @@ export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const form = useForm({
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
 
     onSubmit: async ({ value }) => {
       try {
-        await login(value.email, value.password);
+        await login(value.username, value.password);
         showNotification("Ingreso correcto");
-        navigate("/categories");
+        navigate("/");
       } catch {
         form.setFieldValue("password", "");
-        alert("Email o contraseña incorrectos");
+        alert("Username o contraseña incorrectos");
       }
     },
   });
@@ -44,21 +44,21 @@ export default function LoginPage() {
           className="flex flex-col gap-4"
         >
           <form.Field
-            name="email"
+            name="username"
             children={(field) => (
               <div className="flex flex-col gap-1">
                 <label htmlFor={field.name} className="form-label">
-                  Email
+                  Username
                 </label>
 
                 <input
                   id={field.name}
-                  type="email"
+                  type="text"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(event) => field.handleChange(event.target.value)}
                   className="form-input"
-                  placeholder="ejemplo@correo.com"
+                  placeholder="miusuario42"
                   required
                 />
               </div>

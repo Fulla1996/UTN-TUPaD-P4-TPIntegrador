@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 
@@ -67,6 +67,8 @@ def listar_productos(
     disponible: bool | None = Query(None),
     categoria_id: int | None = Query(None),
     search: str | None = Query(None),
+    sort_by: Literal["id", "nombre", "precio_base", "stock", "descripcion", "disponible", "activo"] = Query("id"),
+    sort_order: Literal["asc", "desc"] = Query("asc"),
 ):
     return service.obtener_todos(
         skip,
@@ -75,6 +77,8 @@ def listar_productos(
         disponible,
         categoria_id,
         search,
+        sort_by,
+        sort_order,
     )
 
 

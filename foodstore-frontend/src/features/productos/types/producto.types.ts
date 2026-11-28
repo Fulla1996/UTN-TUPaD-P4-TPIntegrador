@@ -37,3 +37,14 @@ export interface ProductosResponse {
   total: number;
   items: ProductoPublic[];
 }
+
+export type ProductoSortBy =
+    | "id"
+    | "nombre"
+    | "precio_base"
+    | "stock"
+    | "descripcion"
+    | "disponible"
+    | "activo";
+
+export type SortOrder = "asc" | "desc";

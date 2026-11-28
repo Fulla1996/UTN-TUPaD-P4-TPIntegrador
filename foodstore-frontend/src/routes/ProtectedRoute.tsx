@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
-import { useAuthStore } from "@/features/auth";
-import type { RolUsuario } from "@/features/auth/types/usuario.types";
+import { useAuthStore } from "@/store/authStore";
+import type { RolUsuario } from "@/features/usuarios";
 import { useNotificationStore } from "@/store/notificationStore";
 
 interface ProtectedRouteProps {

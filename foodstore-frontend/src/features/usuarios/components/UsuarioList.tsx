@@ -14,11 +14,11 @@ import type {
     SortingState,
 } from "@tanstack/react-table";
 
-import type { UsuarioAdmin } from "../types/usuario.types";
-import { useAuthStore } from "../../../store/authStore";
+import type { UsuarioAuth } from "@/features/usuarios";
+import { useAuthStore } from "@/store";
 
 interface UsuarioListProps {
-    usuarios: UsuarioAdmin[];
+    usuarios: UsuarioAuth[];
     onActivar: (id: number) => void;
     onDesactivar: (id: number) => void;
 }
@@ -32,38 +32,33 @@ function UsuarioList({
     const [sorting, setSorting] = useState<SortingState>([]);
     const usuarioActual = useAuthStore((state) => state.user);
 
-    const columns: ColumnDef<UsuarioAdmin>[] = [
+    const columns: ColumnDef<UsuarioAuth>[] = [
         {
-            accessorKey: "nombre",
+            accessorKey: "full_name",
             header: "Nombre",
             cell: ({ row }) =>
-                `${row.original.nombre} ${row.original.apellido}`,
+                `${row.original.full_name}`,
         },
         {
             accessorKey: "email",
             header: "Email",
         },
         {
-            accessorKey: "celular",
-            header: "Celular",
-            cell: ({ row }) => row.original.celular ?? "-",
-        },
-        {
-            accessorKey: "roles",
+            accessorKey: "role",
             header: "Roles",
-            cell: ({ row }) => row.original.roles.join(", ") || "-",
+            cell: ({ row }) => row.original.role,
         },
         {
-            accessorKey: "activo",
+            accessorKey: "disabled",
             header: "Estado",
             cell: ({ row }) =>
-                row.original.activo ? "Activo" : "Desactivado",
+                row.original.disabled ? "Desactivado" : "Activo",
         },
         {
             id: "acciones",
             header: "Acciones",
             enableSorting: false,
-            cell: ({ row }: CellContext<UsuarioAdmin, unknown>) => {
+            cell: ({ row }: CellContext<UsuarioAuth, unknown>) => {
                 const usuario = row.original;
 
                 if (usuario.id === usuarioActual?.id) {
@@ -72,7 +67,7 @@ function UsuarioList({
 
                 return (
                     <div className="flex gap-2">
-                        {usuario.activo ? (
+                        {!usuario.disabled ? (
                             <button
                                 onClick={() => onDesactivar(usuario.id)}
                                 className="btn btn-danger"
@@ -173,7 +168,7 @@ function UsuarioList({
                 </button>
 
                 <span className="text-sm text-muted">
-                    Página {table.getState().pagination.pageIndex + 1} de{" "}
+                    Página {table.getPageCount() === 0 ? 0 : table.getState().pagination.pageIndex + 1} de{" "}
                     {table.getPageCount()}
                 </span>
 

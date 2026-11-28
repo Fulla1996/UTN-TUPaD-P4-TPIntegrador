@@ -1,5 +1,5 @@
 import { api } from "@/shared/api/axiosInstance";
-import type { UsuarioAuth } from "../types/usuario.types";
+import type { UsuarioAuth } from "@/features/usuarios";
 
 export async function login(username: string, password: string): Promise<void> {
   const formData = new URLSearchParams();

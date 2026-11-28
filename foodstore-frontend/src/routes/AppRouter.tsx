@@ -1,19 +1,19 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-import {
-  LoginPage,
-  RegisterPage,
-  AdminUsersPage,
-} from "@/features/auth";
+import { LoginPage, RegisterPage } from "@/features/auth";
+import { AdminProductosPage, CatalogoPage, DetalleProductoPage } from "@/features/productos";
+import { CarritoPage, MisPedidosPage } from "@/features/pedidos";
+import { AdminUsuariosPage } from "@/features/usuarios";
 
-import { CategoriasPage } from "@/features/categorias";
-import { ProductosPage } from "@/features/productos";
-import { IngredientesPage } from "@/features/ingredients";
-
-import { Navbar, UnauthorizedPage } from "@/shared/components";
+import { Navbar } from "@/shared";
+import { UnauthorizedPage } from "@/features/auth"
+import { Footer } from "@/shared/components/Footer";
+import AdminLayout from "@/shared/layout/AdminLayout";
 
 import ProtectedRoute from "./ProtectedRoute";
-import { Footer } from "@/shared/components/Footer";
+import { AdminCategoriasPage } from "@/features/categorias";
+import { AdminDashboardPage } from "@/features/dashboard";
+import CatalogoLayout from "@/shared/layout/CatalogoLayout";
 
 function MainLayout() {
   return (
@@ -36,17 +36,45 @@ export default function AppRouter() {
       {/* Rutas privadas: cualquier usuario autenticado */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/categories" replace />} />
-          <Route path="/categories" element={<CategoriasPage />} />
-          <Route path="/products" element={<ProductosPage />} />
-          <Route path="/ingredientes" element={<IngredientesPage />} />
+          <Route element={<CatalogoLayout />}>
+            <Route path="/" element={<CatalogoPage />} />
+          </Route>
+
+          <Route path="/carrito" element={<CarritoPage />} />
+          <Route path="/mis-pedidos" element={<MisPedidosPage />} />
+
+          <Route
+            path="/productos/:productoId"
+            element={<DetalleProductoPage />}
+          />
         </Route>
       </Route>
 
-      {/* Rutas privadas: solo ADMIN */}
+      {/* Rutas privadas: solamente administradores */}
       <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-        <Route element={<MainLayout />}>
-          <Route path="/admin/users" element={<AdminUsersPage />} />
+        <Route element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={<AdminDashboardPage />}
+          />
+
+          <Route
+            path="/admin/usuarios"
+            element={<AdminUsuariosPage />}
+          />
+          <Route
+            path="/admin/categorias"
+            element={<AdminCategoriasPage />}
+          />
+          <Route
+            path="/admin/productos"
+            element={<AdminProductosPage />}
+          />
+
+          <Route
+            path="/admin/pedidos"
+            element={<MisPedidosPage />}
+          />
         </Route>
       </Route>
 

@@ -1,4 +1,4 @@
-import { useUsuarios } from "../hooks/useUsuarios";
+import { useUsuarios } from "@/features/usuarios";
 
 import UsuarioList from "../components/UsuarioList";
 
@@ -6,12 +6,15 @@ import LoadingState from "@/shared/components/LoadingState";
 import EmptyState from "@/shared/components/EmptyState";
 import ErrorState from "@/shared/components/ErrorState";
 
-function AdminUsersPage() {
+function AdminUsuariosPage() {
     const {
         usuariosQuery,
         activarMutation,
         desactivarMutation,
     } = useUsuarios();
+
+    const mutacionPendiente =
+        activarMutation.isPending || desactivarMutation.isPending;
 
     const handleActivar = (id: number) => {
         const confirmar = window.confirm(
@@ -49,7 +52,7 @@ function AdminUsersPage() {
     }
 
     return (
-        <main className="min-h-screen space-y-6 bg-background p-6">
+        <div className="space-y-6">
             <h1 className="text-2xl font-bold text-foreground">
                 Administración de usuarios
             </h1>
@@ -80,8 +83,8 @@ function AdminUsersPage() {
             ) : (
                 <EmptyState mensaje="No hay usuarios registrados." />
             )}
-        </main>
+        </div>
     );
 }
 
-export default AdminUsersPage;
+export default AdminUsuariosPage;

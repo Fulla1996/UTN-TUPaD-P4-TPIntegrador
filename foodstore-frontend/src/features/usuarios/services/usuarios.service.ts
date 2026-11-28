@@ -1,9 +1,9 @@
 import { api } from "@/shared/api/axiosInstance";
-import type { UsuarioAdmin } from "../types/usuario.types";
+import type { UsuarioAuth } from "@/features/usuarios";
 
 // Obtener todos los usuarios
-export const obtenerUsuarios = async (): Promise<UsuarioAdmin[]> => {
-    const response = await api.get<UsuarioAdmin[]>(
+export const obtenerUsuarios = async (): Promise<UsuarioAuth[]> => {
+    const response = await api.get<UsuarioAuth[]>(
         "/auth/admin/usuarios"
     );
 
@@ -13,8 +13,8 @@ export const obtenerUsuarios = async (): Promise<UsuarioAdmin[]> => {
 // Activar un usuario
 export const activarUsuario = async (
     id: number
-): Promise<UsuarioAdmin> => {
-    const response = await api.post<UsuarioAdmin>(
+): Promise<UsuarioAuth> => {
+    const response = await api.post<UsuarioAuth>(
         `/auth/admin/usuarios/${id}/activar`
     );
 
@@ -24,8 +24,8 @@ export const activarUsuario = async (
 // Desactivar un usuario
 export const desactivarUsuario = async (
     id: number
-): Promise<UsuarioAdmin> => {
-    const response = await api.post<UsuarioAdmin>(
+): Promise<UsuarioAuth> => {
+    const response = await api.post<UsuarioAuth>(
         `/auth/admin/usuarios/${id}/desactivar`
     );
 

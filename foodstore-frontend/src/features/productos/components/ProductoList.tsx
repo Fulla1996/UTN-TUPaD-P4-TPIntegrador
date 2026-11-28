@@ -3,21 +3,30 @@ import { useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
 import type {
   CellContext,
   ColumnDef,
+  PaginationState,
   SortingState,
 } from "@tanstack/react-table";
 
-import type { ProductoPublic } from "../types/producto.types";
+import type { ProductoPublic, ProductoSortBy, SortOrder } from "@/features/productos";
 
 interface ProductoListProps {
   productos: ProductoPublic[];
+  total: number;
+  paginaActual: number;
+  limite: number;
+
+  onCambiarPagina: (pagina: number) => void;
+  onCambiarOrdenamiento: (
+    sortBy: ProductoSortBy,
+    sortOrder: SortOrder,
+  ) => void;
+
   onEditar: (producto: ProductoPublic) => void;
   onEliminar: (id: number) => void;
   onCambiarDisponibilidad: (producto: ProductoPublic) => void;
@@ -25,13 +34,26 @@ interface ProductoListProps {
 
 function ProductoList({
   productos,
+  total,
+  paginaActual,
+  limite,
+  onCambiarPagina,
+  onCambiarOrdenamiento,
   onEditar,
   onEliminar,
   onCambiarDisponibilidad,
 }: ProductoListProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "id",
+      desc: false,
+    },
+  ]);
   const columns: ColumnDef<ProductoPublic>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+    },
     {
       accessorKey: "nombre",
       header: "Nombre",
@@ -39,6 +61,7 @@ function ProductoList({
     {
       accessorKey: "categoria.nombre",
       header: "Categoría",
+      enableSorting: false,
       cell: ({ row }) => row.original.categoria.nombre,
     },
     {
@@ -119,16 +142,43 @@ function ProductoList({
     columns,
     state: {
       sorting,
-    },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
       pagination: {
-        pageSize: 10,
+        pageIndex: paginaActual - 1,
+        pageSize: limite,
       },
     },
+    onSortingChange: (updater) => {
+      const nuevoSorting =
+        typeof updater === "function"
+          ? updater(sorting)
+          : updater;
+
+      setSorting(nuevoSorting);
+
+      const ordenamiento = nuevoSorting[0];
+
+      onCambiarOrdenamiento(
+        (ordenamiento?.id ?? "nombre") as ProductoSortBy,
+        ordenamiento?.desc ? "desc" : "asc",
+      );
+    },
+    onPaginationChange: (updater) => {
+      const paginacionActual: PaginationState = {
+        pageIndex: paginaActual - 1,
+        pageSize: limite,
+      };
+
+      const nuevaPaginacion =
+        typeof updater === "function"
+          ? updater(paginacionActual)
+          : updater;
+
+      onCambiarPagina(nuevaPaginacion.pageIndex + 1);
+    },
+    manualSorting: true,
+    manualPagination: true,
+    pageCount: Math.ceil(total / limite),
+    getCoreRowModel: getCoreRowModel(),
   });
 
   return (
@@ -194,8 +244,7 @@ function ProductoList({
         </button>
 
         <span className="text-sm text-muted">
-          Página {table.getState().pagination.pageIndex + 1} de{" "}
-          {table.getPageCount()}
+          Página {paginaActual} de {table.getPageCount()}
         </span>
 
         <button

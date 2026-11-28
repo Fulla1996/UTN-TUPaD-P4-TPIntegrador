@@ -1,181 +1,195 @@
 import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 
+import { Modal } from "@/shared/";
+
 import type {
-  CategoriaCreate,
-  CategoriaPublic,
+    CategoriaCreate,
+    CategoriaPublic,
 } from "../types/categoria.types";
 
 interface CategoriaModalProps {
-  isOpen: boolean;
-  categoria: CategoriaPublic | null;
-  onClose: () => void;
-  onSubmit: (categoria: CategoriaCreate) => void;
-  isPending: boolean;
-  error: string | null;
+    isOpen: boolean;
+    categoria: CategoriaPublic | null;
+    onClose: () => void;
+    onSubmit: (categoria: CategoriaCreate) => void;
+    isPending: boolean;
+    error: string | null;
 }
 
 function CategoriaModal({
-  isOpen,
-  categoria,
-  onClose,
-  onSubmit,
-  isPending,
-  error,
+    isOpen,
+    categoria,
+    onClose,
+    onSubmit,
+    isPending,
+    error,
 }: CategoriaModalProps) {
-  const form = useForm({
-    defaultValues: {
-      nombre: "",
-      descripcion: "",
-    },
-    onSubmit: async ({ value }) => {
-      onSubmit({
-        nombre: value.nombre.trim(),
-        descripcion: value.descripcion.trim() || null,
-      });
-    },
-  });
+    const form = useForm({
+        defaultValues: {
+            nombre: "",
+            descripcion: "",
+        },
 
-  useEffect(() => {
-    if (categoria) {
-      form.reset({
-        nombre: categoria.nombre,
-        descripcion: categoria.descripcion ?? "",
-      });
-    } else {
-      form.reset({
-        nombre: "",
-        descripcion: "",
-      });
-    }
-  }, [categoria, isOpen, form.reset]);
+        onSubmit: async ({ value }) => {
+            onSubmit({
+                nombre: value.nombre.trim(),
+                descripcion: value.descripcion.trim() || null,
+            });
+        },
+    });
 
-  if (!isOpen) return null;
+    useEffect(() => {
+        if (!isOpen) return;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-xl">
-        <h2 className="mb-5 text-xl font-bold text-foreground">
-          {categoria ? "Editar categoría" : "Nueva categoría"}
-        </h2>
+        if (categoria) {
+            form.reset({
+                nombre: categoria.nombre,
+                descripcion: categoria.descripcion ?? "",
+            });
+        } else {
+            form.reset({
+                nombre: "",
+                descripcion: "",
+            });
+        }
+    }, [categoria, isOpen, form.reset]);
 
-        {error && (
-          <p
-            role="alert"
-            className="mb-4 rounded-md border border-red-300 bg-red-100 p-3 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
-          >
-            Error: {error}
-          </p>
-        )}
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={categoria ? "Editar categoría" : "Nueva categoría"}
+            size="md"
+            closeOnOverlay={!isPending}
+            showCloseButton={!isPending}
+            footer={
+                <>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isPending}
+                        className="btn btn-secondary"
+                    >
+                        Cancelar
+                    </button>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (!isPending) {
-              form.handleSubmit();
+                    <button
+                        type="submit"
+                        form="categoria-form"
+                        disabled={isPending}
+                        className="btn btn-success"
+                    >
+                        {isPending ? "Guardando..." : "Guardar"}
+                    </button>
+                </>
             }
-          }}
         >
-          <div className="mb-4">
-            <label htmlFor="nombre" className="form-label">
-              Nombre
-            </label>
+            {error && (
+                <p
+                    role="alert"
+                    className="mb-4 rounded-md border border-red-300 bg-red-100 p-3 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+                >
+                    Error: {error}
+                </p>
+            )}
 
-            <form.Field
-              name="nombre"
-              validators={{
-                onBlur: ({ value }) => {
-                  const nombre = value.trim();
+            <form
+                id="categoria-form"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                  if (nombre.length < 3) {
-                    return "El nombre debe tener al menos 3 caracteres";
-                  }
-
-                  if (nombre.length > 80) {
-                    return "El nombre no puede superar los 80 caracteres";
-                  }
-
-                  return undefined;
-                },
-              }}
+                    if (!isPending) {
+                        form.handleSubmit();
+                    }
+                }}
+                className="space-y-4"
             >
-              {(field) => (
-                <>
-                  <input
-                    id={field.name}
-                    type="text"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    maxLength={80}
-                    required
-                    aria-invalid={field.state.meta.errors.length > 0}
-                    className="form-input"
-                  />
+                {/* Nombre */}
+                <form.Field
+                    name="nombre"
+                    validators={{
+                        onBlur: ({ value }) => {
+                            const nombre = value.trim();
 
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {field.state.meta.errors.join(", ")}
-                    </p>
-                  )}
-                </>
-              )}
-            </form.Field>
-          </div>
+                            if (nombre.length < 3) {
+                                return "El nombre debe tener al menos 3 caracteres";
+                            }
 
-          <div className="mb-5">
-            <label htmlFor="descripcion" className="form-label">
-              Descripción
-            </label>
+                            if (nombre.length > 80) {
+                                return "El nombre no puede superar los 80 caracteres";
+                            }
 
-            <form.Field
-              name="descripcion"
-            >
-              {(field) => (
-                <>
-                  <textarea
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    rows={3}
-                    aria-invalid={field.state.meta.errors.length > 0}
-                    className="form-input"
-                  />
+                            return undefined;
+                        },
+                    }}
+                >
+                    {(field) => (
+                        <div>
+                            <label
+                                htmlFor={field.name}
+                                className="form-label"
+                            >
+                                Nombre
+                            </label>
 
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {field.state.meta.errors.join(", ")}
-                    </p>
-                  )}
-                </>
-              )}
-            </form.Field>
-          </div>
+                            <input
+                                id={field.name}
+                                type="text"
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(e) =>
+                                    field.handleChange(e.target.value)
+                                }
+                                maxLength={80}
+                                required
+                                aria-invalid={field.state.meta.errors.length > 0}
+                                className="form-input"
+                            />
 
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isPending}
-              className="btn btn-secondary"
-            >
-              Cancelar
-            </button>
+                            {field.state.meta.errors.length > 0 && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                    {field.state.meta.errors.join(", ")}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </form.Field>
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="btn btn-success"
-            >
-              {isPending ? "Guardando..." : "Guardar"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+                {/* Descripción */}
+                <form.Field name="descripcion">
+                    {(field) => (
+                        <div>
+                            <label
+                                htmlFor={field.name}
+                                className="form-label"
+                            >
+                                Descripción
+                            </label>
+
+                            <textarea
+                                id={field.name}
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(e) =>
+                                    field.handleChange(e.target.value)
+                                }
+                                rows={3}
+                                className="form-input"
+                            />
+
+                            {field.state.meta.errors.length > 0 && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                    {field.state.meta.errors.join(", ")}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </form.Field>
+            </form>
+        </Modal>
+    );
 }
 
 export default CategoriaModal;

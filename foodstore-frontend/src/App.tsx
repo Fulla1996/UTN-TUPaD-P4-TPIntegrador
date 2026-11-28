@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
 import AppRouter from "@/routes/AppRouter";
-import { useAuthStore } from "@/features/auth";
+import { useAuthStore } from "@/store/authStore";
 import ThemeProvider from "./shared/components/ThemeProvider";
-import { Toast } from "./shared/components";
+import { Toast } from "./shared";
 
 function App() {
   const checkSession = useAuthStore((state) => state.checkSession);

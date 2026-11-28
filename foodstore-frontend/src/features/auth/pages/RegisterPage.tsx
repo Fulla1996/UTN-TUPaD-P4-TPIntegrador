@@ -10,8 +10,8 @@ export default function RegisterPage() {
 
     const form = useForm({
         defaultValues: {
-            nombre: "",
-            apellido: "",
+            username: "",
+            full_name: "",
             email: "",
             celular: "",
             password: "",
@@ -20,10 +20,9 @@ export default function RegisterPage() {
         onSubmit: async ({ value }) => {
             try {
                 await registrar({
-                    nombre: value.nombre,
-                    apellido: value.apellido,
+                    username: value.username,
+                    full_name: value.full_name,
                     email: value.email,
-                    celular: value.celular || undefined,
                     password: value.password,
                 });
 
@@ -61,11 +60,11 @@ export default function RegisterPage() {
                     className="flex flex-col gap-4"
                 >
                     <form.Field
-                        name="nombre"
+                        name="username"
                         children={(field) => (
                             <div className="flex flex-col gap-1">
                                 <label htmlFor={field.name} className="form-label">
-                                    Nombre
+                                    Username
                                 </label>
 
                                 <input
@@ -81,11 +80,11 @@ export default function RegisterPage() {
                     />
 
                     <form.Field
-                        name="apellido"
+                        name="full_name"
                         children={(field) => (
                             <div className="flex flex-col gap-1">
                                 <label htmlFor={field.name} className="form-label">
-                                    Apellido
+                                    Nombre Completo
                                 </label>
 
                                 <input
@@ -119,26 +118,6 @@ export default function RegisterPage() {
                                     }}
                                     className="form-input"
                                     required
-                                />
-                            </div>
-                        )}
-                    />
-
-                    <form.Field
-                        name="celular"
-                        children={(field) => (
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor={field.name} className="form-label">
-                                    Celular (opcional)
-                                </label>
-
-                                <input
-                                    id={field.name}
-                                    type="tel"
-                                    value={field.state.value}
-                                    onBlur={field.handleBlur}
-                                    onChange={(event) => field.handleChange(event.target.value)}
-                                    className="form-input"
                                 />
                             </div>
                         )}

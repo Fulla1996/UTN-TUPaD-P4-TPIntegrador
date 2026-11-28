@@ -1,43 +1,43 @@
 import type { CategoriaPublic } from "../types/categoria.types";
 
+import { Card } from "@/shared/";
+
 interface CategoriaCardProps {
-  categoria: CategoriaPublic;
-  onEditar: (categoria: CategoriaPublic) => void;
-  onEliminar: (id: number) => void;
+    categoria: CategoriaPublic;
+    onEditar: (categoria: CategoriaPublic) => void;
+    onEliminar: (id: number) => void;
 }
 
 function CategoriaCard({
-  categoria,
-  onEditar,
-  onEliminar,
+    categoria,
+    onEditar,
+    onEliminar,
 }: CategoriaCardProps) {
-  return (
-    <article className="rounded-lg border border-border bg-surface p-4 shadow-sm">
-      <h3 className="text-lg font-semibold text-foreground">
-        {categoria.nombre}
-      </h3>
+    return (
+        <Card
+            title={categoria.nombre}
+            description={categoria.descripcion || "Sin descripción"}
+            footer={
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => onEditar(categoria)}
+                        className="btn btn-warning"
+                    >
+                        Editar
+                    </button>
 
-      <p className="mt-2 text-sm text-muted">
-        {categoria.descripcion || "Sin descripción"}
-      </p>
-
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={() => onEditar(categoria)}
-          className="btn btn-warning"
-        >
-          Editar
-        </button>
-
-        <button
-          onClick={() => onEliminar(categoria.id)}
-          className="btn btn-danger"
-        >
-          Eliminar
-        </button>
-      </div>
-    </article>
-  );
+                    <button
+                        type="button"
+                        onClick={() => onEliminar(categoria.id)}
+                        className="btn btn-danger"
+                    >
+                        Eliminar
+                    </button>
+                </div>
+            }
+        />
+    );
 }
 
 export default CategoriaCard;

@@ -19,6 +19,7 @@ class PedidoRepository(BaseRepository[Pedido]):
         usuario_id: int | None = None,
         estado: EstadoPedido | None = None,
     ) -> tuple[int, list[Pedido]]:
+
         statement = select(Pedido)
 
         if usuario_id is not None:
@@ -27,22 +28,24 @@ class PedidoRepository(BaseRepository[Pedido]):
         if estado is not None:
             statement = statement.where(Pedido.estado == estado)
 
-        statement = statement.order_by(col(Pedido.created_at).desc())
+        # Calcular total
+        total_statement = select(func.count()).select_from(statement.subquery())
+        total = self.session.exec(total_statement).one()
 
-        total = len(self.session.exec(statement).all())
-        
-        statement = statement.offset(skip).limit(limit)
+        # Obtener pedidos paginados
+        statement = (
+            statement.order_by(col(Pedido.created_at).desc()).offset(skip).limit(limit)
+        )
 
         pedidos = list(self.session.exec(statement).all())
 
         return total, pedidos
 
-
     def obtener_resumen(self) -> dict:
         ahora = datetime.now(UTC)
         inicio_dia = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
         fin_dia = inicio_dia + timedelta(days=1)
-    
+
         conteos = self.session.exec(
             select(
                 Pedido.estado,
@@ -60,7 +63,9 @@ class PedidoRepository(BaseRepository[Pedido]):
         ).one()
 
         ingresos_entregados = self.session.exec(
-            select(func.sum(Pedido.total)).where(Pedido.estado == EstadoPedido.ENTREGADO)
+            select(func.sum(Pedido.total)).where(
+                Pedido.estado == EstadoPedido.ENTREGADO
+            )
         ).one()
 
         return {

@@ -35,6 +35,7 @@ def crear(data: ProductoCreate) -> Producto:
         )
 
         uow.productos.create(nuevo)
+        uow.session.refresh(nuevo, attribute_names=["categoria"])
 
     return nuevo
 
@@ -46,7 +47,10 @@ def obtener_todos(
     disponible: bool | None = None,
     categoria_id: int | None = None,
     search: str | None = None,
+    sort_by: str = "id",
+    sort_order: str = "asc",
 ) -> ProductosPaginados:
+
     with ProductoUnitOfWork() as uow:
         total, productos = uow.productos.obtener_todos(
             skip=skip,
@@ -55,14 +59,13 @@ def obtener_todos(
             disponible=disponible,
             categoria_id=categoria_id,
             search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
     return ProductosPaginados(
         total=total,
-        items=[
-            ProductoRead.model_validate(producto)
-            for producto in productos
-            ]
+        items=[ProductoRead.model_validate(producto) for producto in productos],
     )
 
 
@@ -95,13 +98,7 @@ def actualizar(
             return producto
 
         if "nombre" in cambios:
-            if cambios["nombre"] is None:
-                raise ValueError("El nombre no puede ser nulo.")
-
             cambios["nombre"] = cambios["nombre"].strip()
-
-            if not cambios["nombre"]:
-                raise ValueError("El nombre no puede estar vacío.")
 
             if uow.productos.existe_nombre(
                 cambios["nombre"],
@@ -109,16 +106,8 @@ def actualizar(
             ):
                 raise NombreDuplicado(f"El producto {cambios['nombre']} ya existe.")
 
-        if "precio_base" in cambios and cambios["precio_base"] is None:
-            raise ValueError("El precio no puede ser nulo.")
-
         if "categoria_id" in cambios:
-            if cambios["categoria_id"] is None:
-                raise ValueError("La categoría no puede ser nula.")
-
-            categoria = uow.categorias.get(
-                cambios["categoria_id"],
-            )
+            categoria = uow.categorias.get(cambios["categoria_id"])
 
             if categoria is None:
                 raise CategoriaNoExiste("La categoría seleccionada no existe.")

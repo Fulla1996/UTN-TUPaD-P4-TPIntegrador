@@ -7,7 +7,7 @@ import {
   obtenerUsuarioActual,
 } from "@/features/auth/services/auth.service";
 
-import type { UsuarioAuth } from "../features/auth/types/usuario.types";
+import type { UsuarioAuth } from "@/features/auth";
 
 interface AuthState {
   user: UsuarioAuth | null;

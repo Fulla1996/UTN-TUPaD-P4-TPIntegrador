@@ -8,7 +8,7 @@ import {
     obtenerUsuarios,
     activarUsuario,
     desactivarUsuario,
-} from "../services/usuarios.service";
+} from "../../usuarios/services/usuarios.service";
 
 import { useNotificationStore } from "@/store/notificationStore";
 

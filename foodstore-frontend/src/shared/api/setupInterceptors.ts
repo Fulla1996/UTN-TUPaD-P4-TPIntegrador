@@ -25,7 +25,7 @@ export function setupInterceptors() {
 
                     if (!esLogin && !esVerificarSesion) {
                         const { useAuthStore } = await import(
-                            "@/features/auth"
+                            "@/store/authStore"
                         );
 
                         useAuthStore.getState().setUser(null);

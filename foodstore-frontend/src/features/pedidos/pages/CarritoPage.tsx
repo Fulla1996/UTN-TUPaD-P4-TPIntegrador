@@ -4,6 +4,12 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 
+import { useCrearPedido } from "@/features/pedidos/hooks/usePedidos";
+import type { PedidoCreate } from "@/features/pedidos/types/pedido.types";
+
+import CarritoList from "@/features/pedidos/components/CarritoList";
+import CheckoutPage from "@/features/pedidos/pages/CheckoutPage";
+
 const CarritoPage = () => {
     const usuarioId = useAuthStore((state) => state.user!.id);
 
@@ -27,11 +33,13 @@ const CarritoPage = () => {
         (state) => state.sincronizarCarrito,
     );
 
+    const crearMutation = useCrearPedido();
+
     const [sincronizando, setSincronizando] = useState(true);
     const [errorSincronizacion, setErrorSincronizacion] = useState(false);
     const [precioCambio, setPrecioCambio] = useState(false);
     const [stockCambio, setStockCambio] = useState(false);
-    const [mensajeCheckout, setMensajeCheckout] = useState("");
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
     // Sincronizar productos al ingresar al carrito.
     useEffect(() => {
@@ -70,12 +78,15 @@ const CarritoPage = () => {
         (item) => item.producto.stock <= 0,
     );
 
-    // Volver a verificar los productos antes de continuar.
-    const handleContinuarCompra = async () => {
+    const limpiarErrores = () => {
+        crearMutation.reset();
+    };
+
+    const handleAbrirCheckout = async () => {
         try {
             setSincronizando(true);
             setErrorSincronizacion(false);
-            setMensajeCheckout("");
+            limpiarErrores();
 
             const resultado = await sincronizarCarrito();
 
@@ -83,21 +94,32 @@ const CarritoPage = () => {
             setStockCambio(resultado.stockCambio);
 
             if (resultado.precioCambio || resultado.stockCambio) {
-                setMensajeCheckout(
-                    "Se detectaron cambios en los productos. Revisá los precios y las cantidades actualizadas antes de continuar.",
-                );
-
                 return;
             }
 
-            setMensajeCheckout(
-                "Los productos y sus precios están actualizados. El proceso de compra estará disponible próximamente.",
-            );
+            setIsCheckoutOpen(true);
         } catch {
             setErrorSincronizacion(true);
         } finally {
             setSincronizando(false);
         }
+    };
+
+    const handleCerrarCheckout = () => {
+        if (crearMutation.isPending) return;
+
+        setIsCheckoutOpen(false);
+        limpiarErrores();
+    };
+
+    const handleCrearPedido = (pedido: PedidoCreate) => {
+        crearMutation.mutate(pedido, {
+            onSuccess: () => {
+                vaciarCarrito();
+                limpiarErrores();
+                setIsCheckoutOpen(false);
+            },
+        });
     };
 
     if (sincronizando) {
@@ -187,144 +209,18 @@ const CarritoPage = () => {
                 </div>
             )}
 
-            {mensajeCheckout && (
-                <div
-                    role="status"
-                    className="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-900"
-                >
-                    {mensajeCheckout}
-                </div>
-            )}
-
-            {sincronizando && (
-                <div
-                    role="status"
-                    className="mb-6 text-sm text-muted"
-                >
-                    Actualizando productos...
-                </div>
-            )}
-
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <section
                     aria-label="Productos del carrito"
-                    className="space-y-4 lg:col-span-2"
+                    className="lg:col-span-2"
                 >
-                    {items.map(({ producto, cantidad }) => (
-                        <article
-                            key={producto.id}
-                            className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm sm:flex-row"
-                        >
-                            {producto.imagen_url ? (
-                                <img
-                                    src={producto.imagen_url}
-                                    alt={producto.nombre}
-                                    className="h-32 w-full rounded-lg object-cover sm:w-32"
-                                />
-                            ) : (
-                                <div className="flex h-32 w-full items-center justify-center rounded-lg bg-background text-sm text-muted sm:w-32">
-                                    Sin imagen
-                                </div>
-                            )}
-
-                            <div className="flex flex-1 flex-col justify-between gap-4">
-                                <div>
-                                    <h2 className="text-lg font-semibold text-foreground">
-                                        {producto.nombre}
-                                    </h2>
-
-                                    <p className="text-sm text-muted">
-                                        {producto.categoria.nombre}
-                                    </p>
-
-                                    <p className="mt-1 font-medium text-foreground">
-                                        ${Number(producto.precio_base).toFixed(2)}
-                                    </p>
-
-                                    {producto.stock > 0 ? (
-                                        <p className="mt-1 text-sm text-muted">
-                                            Stock disponible: {producto.stock}
-                                        </p>
-                                    ) : (
-                                        <p className="mt-2 text-sm font-semibold text-red-600">
-                                            Producto no disponible
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    {producto.stock > 0 ? (
-                                        <div className="flex items-center gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    actualizarCantidad(
-                                                        producto.id,
-                                                        cantidad - 1,
-                                                    )
-                                                }
-                                                disabled={sincronizando}
-                                                className="btn btn-secondary"
-                                                aria-label={`Disminuir cantidad de ${producto.nombre}`}
-                                            >
-                                                -
-                                            </button>
-
-                                            <span className="min-w-6 text-center font-medium">
-                                                {cantidad}
-                                            </span>
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    actualizarCantidad(
-                                                        producto.id,
-                                                        cantidad + 1,
-                                                    )
-                                                }
-                                                disabled={
-                                                    sincronizando ||
-                                                    cantidad >= producto.stock
-                                                }
-                                                className="btn btn-secondary"
-                                                aria-label={`Aumentar cantidad de ${producto.nombre}`}
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <span className="text-sm font-medium text-red-600">
-                                            Eliminá este producto para continuar.
-                                        </span>
-                                    )}
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            quitarProducto(producto.id)
-                                        }
-                                        disabled={sincronizando}
-                                        className="text-sm font-medium text-red-600 hover:underline"
-                                    >
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="text-right sm:min-w-28">
-                                <p className="text-sm text-muted">
-                                    Subtotal
-                                </p>
-
-                                <p className="font-semibold text-foreground">
-                                    $
-                                    {(
-                                        Number(producto.precio_base) * cantidad
-                                    ).toFixed(2)}
-                                </p>
-                            </div>
-                        </article>
-                    ))}
+                    <CarritoList
+                        items={items}
+                        modo="editable"
+                        onActualizarCantidad={actualizarCantidad}
+                        onQuitarProducto={quitarProducto}
+                        disabled={sincronizando}
+                    />
                 </section>
 
                 <aside className="h-fit rounded-xl border border-border bg-surface p-6 shadow-sm">
@@ -349,7 +245,7 @@ const CarritoPage = () => {
 
                     <button
                         type="button"
-                        onClick={handleContinuarCompra}
+                        onClick={handleAbrirCheckout}
                         disabled={
                             sincronizando ||
                             errorSincronizacion ||
@@ -377,6 +273,15 @@ const CarritoPage = () => {
                     </Link>
                 </aside>
             </div>
+
+            <CheckoutPage
+                isOpen={isCheckoutOpen}
+                items={items}
+                onClose={handleCerrarCheckout}
+                onSubmit={handleCrearPedido}
+                isPending={crearMutation.isPending}
+                error={crearMutation.error?.message ?? null}
+            />
         </main>
     );
 };
